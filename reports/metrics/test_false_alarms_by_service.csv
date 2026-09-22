@@ -1,0 +1,9 @@
+service,normal_records,false_alarms,false_alarm_percentage
+-,27375,7968,29.106849315068494
+dns,3068,1,0.03259452411994785
+ftp,758,310,40.89709762532981
+ftp-data,949,0,0.0
+http,4013,1164,29.00573137303763
+radius,2,2,100.0
+smtp,635,0,0.0
+ssh,200,0,0.0
