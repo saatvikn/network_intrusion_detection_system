@@ -46,6 +46,15 @@ def main():
         encoding="utf-8",
     )
 
+    # Export the same six examples with input features only.
+    csv_path = PROJECT_ROOT / "data" / "demo_flows.csv"
+    pd.DataFrame(
+        [sample["record"] for sample in samples],
+        columns=detector.feature_columns,
+    ).to_csv(csv_path, index=False)
+
+    print(f"Saved example CSV to {csv_path}")
+
     print(f"Saved {len(samples)} demo samples to {output_path}")
 
 

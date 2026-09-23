@@ -28,7 +28,7 @@ class IntrusionDetector:
             bundle["positive_label"]
         )
 
-    def predict(self, record):
+    def _validate_record(self, record):
         # Require one record containing exactly the expected input fields.
         if not isinstance(record, dict):
             raise ValueError("The input must be a JSON object.")
@@ -58,19 +58,43 @@ class IntrusionDetector:
             if not isinstance(value, str) or not value.strip():
                 raise ValueError(f"{column} must be a nonempty string.")
 
-        # Restore training column order and apply the fitted pipeline.
-        frame = pd.DataFrame([record], columns=self.feature_columns)
-        probability = float(
-            self.pipeline.predict_proba(frame)[0, self.attack_column]
-        )
+    def predict_many(self, records):
+        # Require at least one network-flow record.
+        if not isinstance(records, list) or not records:
+            raise ValueError("Provide a nonempty list of records.")
 
-        return {
-            "prediction": (
-                "attack" if probability > self.threshold else "normal"
-            ),
-            "attack_probability": probability,
-            "threshold": float(self.threshold),
-        }
+        # Validate every record before running the model.
+        for row_number, record in enumerate(records, start=1):
+            try:
+                self._validate_record(record)
+            except ValueError as exc:
+                raise ValueError(
+                    f"Record {row_number}: {exc}"
+                ) from exc
+
+        # Each dictionary becomes one row, in the supplied order.
+        frame = pd.DataFrame(records, columns=self.feature_columns)
+
+        # Run preprocessing and prediction once for the entire batch.
+        probabilities = self.pipeline.predict_proba(frame)[:, self.attack_column]
+
+        # Return one result per input record, preserving its position.
+        return [
+            {
+                "prediction": (
+                    "attack"
+                    if float(probability) > self.threshold
+                    else "normal"
+                ),
+                "attack_probability": float(probability),
+                "threshold": float(self.threshold),
+            }
+            for probability in probabilities
+        ]
+    
+    def predict(self, record):
+        # Treat a single prediction as a batch containing one record.
+        return self.predict_many([record])[0]
 
 
 if __name__ == "__main__":

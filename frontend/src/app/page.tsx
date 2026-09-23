@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import BatchUpload from "./batch_upload";
+
 type Sample = {
     id: number;
     name: string;
@@ -231,6 +233,7 @@ export default function Home() {
                     set, the model detected 98.27% of attacks and flagged 25.53% of normal
                     flows as attacks.
                 </footer>
+                <BatchUpload apiUrl={API_URL} />
             </div>
         </main>
     );
